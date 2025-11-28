@@ -1,7 +1,7 @@
 {
   "CORSRules": [
     {
-      "AllowedOrigins": ["http://localhost:5173", "https://your-production-domain.com"],
+      "AllowedOrigins": ["http://localhost:5173", "https://albumo-capture.vercel.app/"],
       "AllowedMethods": ["PUT", "POST", "GET", "HEAD"],
       "AllowedHeaders": ["*"],
       "ExposeHeaders": ["ETag"],
