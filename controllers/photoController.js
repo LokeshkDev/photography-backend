@@ -8,19 +8,22 @@ export const getPhotosByEvent = async (req, res) => {
     const { eventId } = req.params;
 
     const event = await Event.findById(eventId).select("photos");
+
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
     }
 
-    const results = event.photos.map((key) => ({
+    // Convert S3 keys to public URLs
+    const photos = event.photos.map((key) => ({
       key,
-      url: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`,
+      url: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`
     }));
 
-    return res.json(results);
+    res.json(photos);
+
   } catch (err) {
-    console.error("GET PHOTOS ERROR:", err);
-    return res.status(500).json({ error: "Failed to fetch photos" });
+    console.error("getPhotosByEvent ERROR:", err);
+    res.status(500).json({ error: "Failed to fetch photos" });
   }
 };
 

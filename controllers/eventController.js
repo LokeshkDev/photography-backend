@@ -1,5 +1,6 @@
 import Event from "../models/Event.js";
 import User from "../models/User.js";
+import Photo from "../models/Photo.js";
 
 // ====================================== CREATE EVENT
 export const createEvent = async (req, res) => {
@@ -30,15 +31,20 @@ export const createEvent = async (req, res) => {
 // ====================================== GET ALL EVENTS (ADMIN)
 export const getAllEvents = async (req, res) => {
   try {
-    const events = await Event.find()
-      .populate("client", "name email");
+    const events = await Event.find().populate("client", "name email");
+
+    const enhancedEvents = events.map(event => ({
+      ...event.toObject(),
+      photoCount: Array.isArray(event.photos) ? event.photos.length : 0,
+    }));
 
     res.json({
-      events,
-      total: events.length,
+      events: enhancedEvents,
+      total: enhancedEvents.length,
     });
 
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Failed to get events" });
   }
 };
@@ -115,13 +121,24 @@ export const deleteEvent = async (req, res) => {
 export const getSingleEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const event = await Event.findById(eventId).select("selectionLimit title client");
+
+    const event = await Event.findById(eventId)
+      .select("selectionLimit title client photos");
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
     }
 
-    res.json(event);
+    // Convert S3 keys to full URLs
+    const photos = event.photos.map((key) => ({
+      key,
+      url: `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`
+    }));
+
+    return res.json({
+      ...event.toObject(),
+      photos,
+    });
 
   } catch (err) {
     console.log("getSingleEvent ERROR:", err);

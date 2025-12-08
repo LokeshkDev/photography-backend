@@ -30,27 +30,50 @@ app.use(cookieParser());
 connectDB();
 // console.log("RUNNING SERVER FROM:", import.meta.url);
 
-// ⛔ IMPORTANT: Ensure default admin exists in DB
 const ensureDefaultAdmin = async () => {
   try {
     const existing = await User.findOne({ username: "admin" });
 
+    const NEW_ADMIN_PASSWORD = "Captura@234";
+
     if (!existing) {
-      const hashed = await bcrypt.hash("admin123", 10);
+      const hashed = await bcrypt.hash(NEW_ADMIN_PASSWORD, 10);
+
       await User.create({
         username: "admin",
+        name: "Super Admin",
+        email: "lokesh@system.com",  
         password: hashed,
-        role: "admin"
+        role: "admin",
+        active: true
       });
 
-      // console.log("✅ Default admin created — username: admin, password: admin123");
+      console.log("✅ Default admin created");
     } else {
-      // console.log("👤 Admin already exists:", existing.username);
+      // Password update logic
+      const isSame = await bcrypt.compare(NEW_ADMIN_PASSWORD, existing.password);
+
+      if (!isSame) {
+        const hashed = await bcrypt.hash(NEW_ADMIN_PASSWORD, 10);
+        existing.password = hashed;
+
+        // ensure other fields remain valid
+        if (!existing.email) existing.email = "Lokesh@system.com";
+        if (!existing.name) existing.name = "Super Admin";
+
+        await existing.save();
+        console.log("🔄 Admin password updated");
+      } else {
+        console.log("✔ Admin password already up to date");
+      }
     }
   } catch (err) {
-    // console.log("❌ ERROR creating default admin:", err.message);
+    console.log("❌ ERROR creating/updating default admin:", err.message);
   }
 };
+
+
+
 
 // Run admin creation
 ensureDefaultAdmin();
