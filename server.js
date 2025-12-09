@@ -16,7 +16,7 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import photoRoutes from "./routes/photoRoutes.js";
 import selectionRoutes from "./routes/selectionRoutes.js";
 import listEndpoints from "express-list-endpoints";
-
+dotenv.config();
 
 const app = express();
 
@@ -34,7 +34,7 @@ const ensureDefaultAdmin = async () => {
   try {
     const existing = await User.findOne({ username: "admin" });
 
-    const NEW_ADMIN_PASSWORD = "Captura@234";
+    const NEW_ADMIN_PASSWORD = process.env.NEW_ADMIN_PASSWORD;;
 
     if (!existing) {
       const hashed = await bcrypt.hash(NEW_ADMIN_PASSWORD, 10);
